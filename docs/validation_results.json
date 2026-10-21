@@ -1,0 +1,63 @@
+{
+  "environment": {
+    "python": "3.12.14",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "pandas": "3.0.6",
+    "matplotlib": "3.11.2"
+  },
+  "reference": {
+    "m_kg": 10,
+    "g_m_s2": 10,
+    "force_N": 200,
+    "pulse_duration_s": 1,
+    "touchdown_s": 3.414213562373095,
+    "max_height_m": 10,
+    "impact_velocity_m_s": -14.142135623730951
+  },
+  "step_refinement": [
+    {
+      "max_step_s": 0.4,
+      "touchdown_s": 3.4142135623730945,
+      "touchdown_error_s": 4.440892098500626e-16,
+      "height_error_m": 1.7763568394002505e-15,
+      "impact_velocity_error_m_s": 0.0
+    },
+    {
+      "max_step_s": 0.2,
+      "touchdown_s": 3.414213562373095,
+      "touchdown_error_s": 0.0,
+      "height_error_m": 0.0,
+      "impact_velocity_error_m_s": 0.0
+    },
+    {
+      "max_step_s": 0.1,
+      "touchdown_s": 3.414213562373095,
+      "touchdown_error_s": 0.0,
+      "height_error_m": 0.0,
+      "impact_velocity_error_m_s": 3.552713678800501e-15
+    },
+    {
+      "max_step_s": 0.05,
+      "touchdown_s": 3.414213562373095,
+      "touchdown_error_s": 0.0,
+      "height_error_m": 0.0,
+      "impact_velocity_error_m_s": 0.0
+    }
+  ],
+  "example": {
+    "detached": "Да",
+    "initially_airborne": "Нет",
+    "max_height": 2.4524999999999997,
+    "max_rise": 2.4524999999999997,
+    "max_velocity": 4.905000000000002,
+    "max_speed": 6.936717523440042,
+    "max_acceleration": 9.809999999999997,
+    "max_abs_acceleration": 9.81,
+    "lift_off_time": 0.2,
+    "touchdown_time": 1.9071067811865472,
+    "flight_duration": 1.7071067811865472,
+    "impact_velocity": -6.936717523440042,
+    "stop_time": 1.9071067811865472
+  }
+}

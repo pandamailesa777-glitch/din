@@ -1,0 +1,18 @@
+{
+  "parameters": {
+    "m": {"value": 10, "unit": "kg"},
+    "g": {"value": 9.81, "unit": "m/s^2"},
+    "Vz0": {"value": 0, "unit": "m/s"},
+    "z0": {"value": 0, "unit": "m"},
+    "t0": {"value": 0.2, "unit": "s"},
+    "t1": {"value": 0.7, "unit": "s"},
+    "tmax": {"value": 4, "unit": "s"}
+  },
+  "solver": {
+    "max_step": {"value": 0.01, "unit": "s"},
+    "output_step": {"value": 0.005, "unit": "s"},
+    "rtol": 1e-8,
+    "atol_z": {"value": 1e-10, "unit": "m"},
+    "atol_v": {"value": 1e-10, "unit": "m/s"}
+  }
+}

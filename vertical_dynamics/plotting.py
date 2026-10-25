@@ -1,61 +1,76 @@
-"""Five diagnostic plots, usable both without a display and in Tkinter."""
+"""Six diagnostics with event markers and cursor data, shared by GUI and PDF."""
 import numpy as np
 from matplotlib.figure import Figure
 
-from .results import time_history
+from .results import sample, summary, time_history
+
+
+def force_preview(p, load):
+    figure = Figure(figsize=(8, 3), layout="constrained")
+    ax = figure.subplots()
+    times = np.unique(np.r_[0., p.end_time, p.force_start, p.force_end, load.time,
+                           [np.nextafter(t, -np.inf) for t in (p.force_start, p.force_end) if t > 0]])
+    times = times[(times >= 0) & (times <= p.end_time)]
+    ax.plot(times, load.value(times, p), color="#15749b")
+    ax.axhline(p.mass * p.gravity, color="#b97424", linestyle=":", label="Вес mg")
+    ax.set(xlabel="Время, с", ylabel="Внешняя сила, Н", title="Заданная сила: положительное направление вверх")
+    ax.grid(alpha=.2)
+    ax.legend()
+    return figure
 
 
 def make_figure(result):
     history = time_history(result)
-    figure = Figure(figsize=(11, 11), layout="constrained", facecolor="#f5f7fa")
-    axes = figure.subplots(5, 1, sharex=True)
-    figure.suptitle("Вертикальное движение • односторонний контакт", fontsize=15, fontweight="bold")
-    for ax in axes:
+    p = result.parameters
+    figure = Figure(figsize=(12, 10), layout="constrained", facecolor="#f5f7fa")
+    axes = figure.subplots(3, 2).ravel()
+    figure.suptitle("Вертикальное движение • " + ("метод Эйлера" if p.method == "Euler" else "RK45"), fontsize=15)
+    boundaries = [p.force_start, p.force_end, result.lift_off]
+    extra = [np.nextafter(t, -np.inf) for t in boundaries if t is not None and 0 < t <= result.stop_time]
+    times = np.unique(np.r_[history.time_s, extra])
+    dense = sample(result, times)
+    keys = ["Fz_N", "reaction_N", "az_m_s2", "vz_m_s", "z_m", "contact"]
+    labels = ["Внешняя сила, Н", "Реакция основания, Н", "Ускорение, м/с²", "Скорость, м/с", "Перемещение, м", "Контакт"]
+    peak = summary(result).set_index("key").loc["peak_time", "value"]
+    events = [(p.force_start, "Начало воздействия", "#888888", ":"),
+              (p.force_end, "Конец воздействия", "#888888", "-."),
+              (result.lift_off, "Отрыв", "#248658", "--"),
+              (peak, "Максимум высоты", "#a67020", ":"),
+              (result.touchdown, "Касание", "#c34646", "--")]
+    for ax, key, label in zip(axes, keys, labels):
         ax.set_facecolor("white")
-        ax.grid(True, alpha=0.2)
+        ax.grid(alpha=.2)
         ax.spines[["top", "right"]].set_visible(False)
-    axes[0].plot(history.time_s, history.z_m, color="#1978a5", linewidth=1.8)
-    axes[1].plot(history.time_s, history.vz_m_s, color="#1978a5", linewidth=1.8)
-    # Draw acceleration pieces separately so jumps have zero horizontal duration.
-    if not result.pieces:
-        axes[2].plot([0, result.stop_time], [0, 0], color="#1978a5")
-    else:
-        first = result.pieces[0]
-        if first.start > 0:
-            axes[2].plot([0, first.start], [0, 0], color="#1978a5")
-        for piece in result.pieces:
-            axes[2].plot([piece.start, piece.end],
-                         [piece.acceleration(piece.start), piece.acceleration(piece.end)], color="#1978a5", linewidth=1.8)
-    # Include the left-hand limit of both external-force jumps.
-    boundaries = [result.parameters.force_start, result.parameters.force_end]
-    extra = [np.nextafter(t, -np.inf) for t in boundaries if 0 < t <= result.stop_time]
-    force_times = np.unique(np.r_[history.time_s, extra])
-    force_values = result.load.value(force_times, result.parameters)
-    axes[3].plot(force_times, force_values, color="#94612b", linewidth=1.8)
-    axes[3].axhline(result.parameters.mass * result.parameters.gravity,
-                   color="#8c8c8c", linestyle=":", label="mg")
-    axes[3].legend(loc="upper right", fontsize=8)
-    contact_codes = history.state.map({"contact": 0, "flight": 1, "touchdown": 2})
-    axes[4].step(history.time_s, contact_codes, where="post", color="#1978a5", linewidth=1.8)
-    if result.touchdown is not None:
-        axes[4].scatter([result.touchdown], [2], color="#c34646", zorder=5)
-    axes[4].set_yticks([0, 1, 2], ["На основании", "Полёт", "Касание"])
-    axes[4].set_ylim(-0.25, 2.25)
-    for ax, label in zip(axes, ["Высота, м", "Скорость, м/с", "Ускорение, м/с²", "Сила Fz, Н", "Состояние"]):
-        ax.set_ylabel(label)
-        for time, name, color in ((result.lift_off, "Отрыв", "#248658"), (result.touchdown, "Касание", "#c34646")):
-            if time is not None:
-                ax.axvline(time, color=color, linestyle="--", linewidth=1, label=f"{name}: {time:.6g} с")
-    if result.detached:
-        handles, labels = axes[0].get_legend_handles_labels()
-        if handles:
-            axes[0].legend(handles, labels, loc="upper right", fontsize=9)
-    axes[-1].set_xlabel("Время, с")
-    axes[-1].set_xlim(0, max(result.stop_time, 1e-9))
+        if key == "az_m_s2" and result.pieces:
+            first = result.pieces[0].start
+            ax.plot([0, first], [0, 0], color="#1978a5")
+            for piece in result.pieces:
+                ax.plot([piece.start, piece.end], [piece.acceleration(piece.start), piece.acceleration(piece.end)], color="#1978a5")
+        elif key == "contact":
+            ax.step(times, dense.contact.astype(int), where="post", color="#1978a5")
+            ax.set_yticks([0, 1], ["Нет", "Есть"])
+            ax.set_ylim(-.15, 1.15)
+            if result.touchdown is not None:
+                ax.scatter([result.touchdown], [1], color="#c34646", zorder=5)
+        else:
+            ax.plot(times, dense[key], color="#1978a5", linewidth=1.6)
+        ax.set(title=label, ylabel=label, xlabel="Время, с", xlim=(0, max(result.stop_time, 1e-9)))
+        for t, name, color, style in events:
+            if t is not None and t <= result.stop_time:
+                ax.axvline(t, color=color, linestyle=style, linewidth=.9, label=f"{name}: {t:.5g} с")
+        def coordinate(x, y, key=key):
+            if not 0 <= x <= result.stop_time:
+                return ""
+            value = sample(result, [x]).iloc[0][key]
+            shown = ("Есть" if value else "Нет") if key == "contact" else ("Не определено" if np.isnan(value) else f"{value:.7g}")
+            return f"t = {x:.7g} с; значение = {shown}"
+        ax.format_coord = coordinate
+    axes[0].legend(fontsize=7, loc="best")
+    if peak is not None:
+        axes[4].scatter([peak], [sample(result, [peak]).z_m.iloc[0]], color="#a67020", zorder=5)
     return figure
 
 
 def save_png(result, path):
-    figure = make_figure(result)
-    figure.savefig(path, dpi=160)
+    make_figure(result).savefig(path, dpi=160)
     return path

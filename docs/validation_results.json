@@ -45,10 +45,51 @@
       "impact_velocity_error_m_s": 0.0
     }
   ],
+  "euler_step_refinement": [
+    {
+      "step_s": 0.08,
+      "touchdown_s": 3.4548571428571453,
+      "touchdown_error_s": 0.04064358048405037,
+      "height_error_m": 0.01600000000000179,
+      "impact_velocity_error_m_s": 0.40643580484048236
+    },
+    {
+      "step_s": 0.04,
+      "touchdown_s": 3.434285714285716,
+      "touchdown_error_s": 0.020072151912621017,
+      "height_error_m": 3.552713678800501e-15,
+      "impact_velocity_error_m_s": 0.2007215191262013
+    },
+    {
+      "step_s": 0.02,
+      "touchdown_s": 3.4242253521126766,
+      "touchdown_error_s": 0.010011789739581722,
+      "height_error_m": 1.0658141036401503e-14,
+      "impact_velocity_error_m_s": 0.10011789739578347
+    },
+    {
+      "step_s": 0.01,
+      "touchdown_s": 3.4192198581559983,
+      "touchdown_error_s": 0.005006295782903347,
+      "height_error_m": 2.1316282072803006e-14,
+      "impact_velocity_error_m_s": 0.050062957829295485
+    },
+    {
+      "step_s": 0.005,
+      "touchdown_s": 3.4167137809186725,
+      "touchdown_error_s": 0.0025002185455775816,
+      "height_error_m": 3.019806626980426e-14,
+      "impact_velocity_error_m_s": 0.025002185456367343
+    }
+  ],
   "example": {
+    "mass": 10.0,
+    "force_duration": 0.49999999999999994,
+    "max_force": 196.2,
     "detached": "Да",
     "initially_airborne": "Нет",
     "max_height": 2.4524999999999997,
+    "peak_time": 1.2000000000000002,
     "max_rise": 2.4524999999999997,
     "max_velocity": 4.905000000000002,
     "max_speed": 6.936717523440042,
@@ -57,6 +98,7 @@
     "lift_off_time": 0.2,
     "touchdown_time": 1.9071067811865472,
     "flight_duration": 1.7071067811865472,
+    "observed_flight_duration": 1.7071067811865472,
     "impact_velocity": -6.936717523440042,
     "stop_time": 1.9071067811865472
   }

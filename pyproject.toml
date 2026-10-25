@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vertical-dynamics"
-version = "1.0.0"
+version = "2.0.0"
 description = "One-dimensional rigid-body motion with unilateral ground contact"
 requires-python = ">=3.10"
-dependencies = ["numpy>=1.26,<3", "scipy>=1.12,<2", "pandas>=2.1,<4", "matplotlib>=3.8,<4"]
+dependencies = ["numpy>=1.26,<3", "scipy>=1.12,<2", "pandas>=2.1,<4", "matplotlib>=3.8,<4", "reportlab>=4.4,<5"]
 
 [project.scripts]
 vertical-dynamics = "vertical_dynamics.__main__:main"

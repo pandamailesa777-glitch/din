@@ -60,13 +60,13 @@ def test_export_and_png(tmp_path):
     paths = export_csv(result, tmp_path)
     table = pd.read_csv(paths[0])
     assert table.iloc[-1].time_s == pytest.approx(result.touchdown)
-    assert len(pd.read_csv(paths[1])) == 13
+    assert len(pd.read_csv(paths[1])) == 18
     assert json.loads(paths[2].read_text(encoding="utf-8"))["parameters_SI"]["mass"] == 10
     path = tmp_path / "plots.png"
     save_png(result, path)
     assert path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
     fig = make_figure(result)
-    assert len(fig.axes) == 5
+    assert len(fig.axes) == 6
     assert sum(len(ax.lines) for ax in fig.axes) >= 15
 
 

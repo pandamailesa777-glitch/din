@@ -18,7 +18,7 @@ UNITS = {
     "velocity": {"m/s": 1.0, "mm/s": 0.001},
     "length": {"m": 1.0, "mm": 0.001, "cm": 0.01},
     "time": {"s": 1.0, "ms": 0.001},
-    "force": {"N": 1.0, "kN": 1000.0},
+    "force": {"N": 1.0, "kN": 1000.0, "kgf": 9.80665},
 }
 
 
@@ -61,10 +61,19 @@ class Parameters:
     rtol: float
     atol_z: float
     atol_v: float
+    method: str = "RK45"
+    euler_step: float = 0.001
 
     def __post_init__(self):
         for key, value in vars(self).items():
-            number(value, key)
+            if key != "method":
+                number(value, key)
+        if self.method not in ("RK45", "Euler"):
+            raise InputError("Метод должен быть RK45 или Euler.")
+        if self.euler_step <= 0:
+            raise InputError("Шаг Эйлера должен быть положительным.")
+        if self.method == "Euler" and self.end_time / self.euler_step > 1_000_000:
+            raise InputError("Для Эйлера разрешено не более 1 000 000 шагов; увеличьте шаг.")
         for key in ("mass", "gravity", "end_time", "max_step", "output_step", "atol_z", "atol_v"):
             if getattr(self, key) <= 0:
                 raise InputError(f"{key}: требуется положительное значение.")

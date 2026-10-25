@@ -1,3 +1,5 @@
+altgraph==0.17.5
+charset-normalizer==3.5.2
 colorama==0.4.6
 contourpy==1.4.0
 cycler==0.12.1
@@ -8,12 +10,19 @@ matplotlib==3.11.2
 numpy==2.5.4
 packaging==26.3
 pandas==3.0.6
+pefile==2023.2.7
 pillow==12.3.0
 pluggy==1.7.0
 Pygments==2.21.0
+pyinstaller==6.16.0
+pyinstaller-hooks-contrib==2026.9
 pyparsing==3.3.3
+pypdf==5.9.0
 pytest==9.1.1
 python-dateutil==2.9.0.post0
+pywin32-ctypes==0.2.3
+reportlab==4.4.4
 scipy==1.18.1
+setuptools==84.2.1
 six==1.17.0
 tzdata==2026.5

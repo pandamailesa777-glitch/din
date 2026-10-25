@@ -1,0 +1,31 @@
+{
+  "schema": "vertical-dynamics-case/1",
+  "title": "Учебный пример: прямоугольная сила",
+  "units": "SI: kg, m, s, N",
+  "parameters": {
+    "mass": 10.0,
+    "gravity": 9.81,
+    "initial_velocity": 0.0,
+    "initial_height": 0.0,
+    "force_start": 0.2,
+    "force_end": 0.7,
+    "end_time": 4.0,
+    "max_step": 0.01,
+    "output_step": 0.005,
+    "rtol": 1e-08,
+    "atol_z": 1e-10,
+    "atol_v": 1e-10,
+    "method": "RK45",
+    "euler_step": 0.001
+  },
+  "load": {
+    "time_s": [
+      0.2,
+      0.7
+    ],
+    "force_N": [
+      196.2,
+      196.2
+    ]
+  }
+}

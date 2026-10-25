@@ -54,13 +54,21 @@ def summary(result):
     for piece in result.pieces:
         accelerations.extend([piece.acceleration(piece.start), piece.acceleration(piece.end)])
     height = float(critical.z_m.max())
+    peak_time = float(critical.loc[critical.z_m.idxmax(), "time_s"]) if result.detached else None
+    load_times = np.r_[p.force_start, p.force_end,
+                       result.load.time[(result.load.time >= p.force_start) & (result.load.time <= p.force_end)]]
+    max_force = float(np.max(np.interp(load_times, result.load.time, result.load.force)))
     impact = None if result.touchdown is None else float(result.pieces[-1].solution(result.touchdown)[1])
     start = 0.0 if result.initially_airborne else result.lift_off
     duration = None if result.touchdown is None else result.touchdown - start
     rows = [
+        ("mass", "Масса конструкции", p.mass, "кг"),
+        ("force_duration", "Продолжительность воздействия", p.force_end - p.force_start, "с"),
+        ("max_force", "Максимальная внешняя сила на интервале воздействия", max_force, "Н"),
         ("detached", "Произошёл ли полный отрыв / отсутствие контакта", "Да" if result.detached else "Нет", ""),
         ("initially_airborne", "Начальное положение над основанием", "Да" if result.initially_airborne else "Нет", ""),
         ("max_height", "Максимальная высота над основанием", height, "м"),
+        ("peak_time", "Момент максимальной высоты в расчётном интервале", peak_time, "с"),
         ("max_rise", "Максимальный подъём относительно z0", height - p.initial_height, "м"),
         ("max_velocity", "Максимальная вертикальная скорость (со знаком)", float(critical.vz_m_s.max()), "м/с"),
         ("max_speed", "Максимальный модуль вертикальной скорости", float(critical.vz_m_s.abs().max()), "м/с"),
@@ -69,6 +77,7 @@ def summary(result):
         ("lift_off_time", "Момент отрыва", result.lift_off, "с"),
         ("touchdown_time", "Момент первого касания", result.touchdown, "с"),
         ("flight_duration", "Время полёта в расчётном интервале до касания", duration, "с"),
+        ("observed_flight_duration", "Длительность наблюдаемого свободного движения", None if start is None else result.stop_time - start, "с"),
         ("impact_velocity", "Скорость непосредственно перед касанием", impact, "м/с"),
         ("stop_time", "Время окончания расчёта", result.stop_time, "с"),
     ]
@@ -86,7 +95,7 @@ def summary(result):
 
 def format_value(value):
     if value is None or pd.isna(value):
-        return "—"
+        return "Не определено"
     return f"{value:.9g}" if isinstance(value, (float, int)) else str(value)
 
 

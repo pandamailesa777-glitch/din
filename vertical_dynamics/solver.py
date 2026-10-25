@@ -36,6 +36,8 @@ class Simulation:
 
 
 def simulate(p, load):
+    if p.method == "Euler":
+        return simulate_euler(p, load)
     load.validate_coverage(p)
     knots = np.unique(np.r_[0.0, p.force_start, p.force_end, p.end_time,
                             load.time[(load.time > p.force_start) & (load.time < p.force_end)]])
@@ -99,6 +101,63 @@ def simulate(p, load):
             if len(sol.t_events[0]):
                 touchdown = end
                 break
+        if touchdown is not None:
+            break
+    stop = touchdown if touchdown is not None else p.end_time
+    critical.append(stop)
+    return Simulation(p, load, pieces, lift, touchdown, initial, stop, np.unique(critical))
+
+
+class EulerOutput:
+    """Piecewise linear dense output of explicit Euler nodes."""
+
+    def __init__(self, times, states):
+        self.times = np.asarray(times)
+        self.states = np.asarray(states).T
+
+    def __call__(self, t):
+        return np.array([np.interp(t, self.times, row) for row in self.states])
+
+
+def simulate_euler(p, load):
+    load.validate_coverage(p)
+    knots = np.unique(np.r_[0., p.force_start, p.force_end, p.end_time,
+                            load.time[(load.time > p.force_start) & (load.time < p.force_end)]])
+    y = np.array([p.initial_height, p.initial_velocity], dtype=float)
+    airborne = p.initial_height > 0 or p.initial_velocity > 0
+    initial = p.initial_height > 0
+    lift = 0. if p.initial_height == 0 and p.initial_velocity > 0 else None
+    pieces, critical, touchdown = [], [0.], None
+    for left, right in zip(knots[:-1], knots[1:]):
+        force, slope = load.linear_piece(left, right, p)
+        a, jerk = free_acceleration(force, p.mass, p.gravity), slope / p.mass
+        start = left if airborne else lift_time(left, right, a, jerk)
+        if start is None:
+            critical.append(right)
+            continue
+        if not airborne:
+            lift, airborne = start, True
+        t, times, states = start, [start], [y.copy()]
+        while t < right:
+            h = min(p.euler_step, right - t)
+            if t + h <= t:
+                raise ValueError("Шаг Эйлера слишком мал для выбранного времени.")
+            acceleration = a + jerk * (t - left)
+            next_y = y + h * np.array([y[1], acceleration])
+            # Localize impact on the Euler height interpolant and retain pre-impact speed.
+            if y[1] < 0 and next_y[0] <= 0:
+                h = max(0., -y[0] / y[1])
+                next_y = np.array([0., y[1] + h * acceleration])
+                touchdown = t + h
+            t = t + h
+            times.append(t)
+            states.append(next_y.copy())
+            y = next_y
+            if touchdown is not None:
+                break
+        pieces.append(FlightPiece(start, t, EulerOutput(times, states),
+                                  a + jerk * (start - left), jerk))
+        critical.extend(times)
         if touchdown is not None:
             break
     stop = touchdown if touchdown is not None else p.end_time
